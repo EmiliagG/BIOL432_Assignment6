@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+GitHub: https://github.com/EmiliagG/BIOL432_Assignment6.git
+
 ## Testing non-parallel loops
 
 ```{r}
