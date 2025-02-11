@@ -1,0 +1,62 @@
+---
+title: "A6_Gillette_20204160"
+author: "EGillette"
+date: "2025-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Testing non-parallel loops
+
+```{r}
+library(parallel)
+
+no_cores<-detectCores()
+
+Iters<-4000
+Start<-Sys.time()
+myMean<-NA
+for(i in 1:Iters){
+  myMean[i]<-mean(rnorm(100000,10,3)) 
+  }
+end<-Sys.time()-Start
+
+theoretical<-(1/(no_cores-1)*end)
+
+```
+My laptop has 8 cores, as detected using detectCores()
+
+Running the for loop for 4000 iterations took approximately 30 seconds. 
+
+Running on 7 cores (1 less the actual number of cores) should, theoretically, take ~4 seconds. 
+
+Note: these values may differ from the table shown below, as the values generated from the normal distributions will be different after each run. 
+
+## Running parallel loops
+
+```{r, warning=FALSE,message=FALSE}
+library(doParallel)
+library(parallel)
+library(foreach)
+
+Cores<-parallel::makeCluster(no_cores-1)
+doParallel::registerDoParallel(Cores)
+
+Start<-Sys.time()
+my_Mean<-foreach(i=1:4000, .combine="c") %dopar% {
+  mean(rnorm(100000,10,3))
+}
+actual_end<-Sys.time()-Start
+
+parallel::stopCluster(Cores)
+
+#my_Mean
+df_times<-data.frame(Series_time=end, Theoretical_time=theoretical, Parallel_time=actual_end)
+df_times
+
+```
+The run-time for the parallel loop is definitely faster than the run-time of the loop in series, but the parallel loop is not faster than the theoretical run-time calculated for 7 cores. Therefore, the theoretical run-time is shorter than the actual run-time in parallel. This is likely due to the cost of "overhead" which is the added run-time by inter-processor communication (as explained on GitHub:https://researchcomputingservices.github.io/parallel-computing/04-overhead/).
+
